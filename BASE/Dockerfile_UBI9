@@ -1,0 +1,24 @@
+FROM redhat/ubi9:latest
+
+LABEL MAINTAINER AIA
+
+ENV SAG_HOME=/opt/softwareag
+
+ENV JAVA_HOME $SAG_HOME/jvm/jvm
+
+ENV JRE_HOME $SAG_HOME/jvm/jvm
+
+ENV PATH=$PATH:$JAVA_HOME/bin
+
+RUN groupadd -g 1724 sagadmin && useradd -u 1724 -m -g 1724 -d $SAG_HOME -c "SoftwareAG Admin" sagadmin && chmod 775 $SAG_HOME
+
+RUN mkdir -p $SAG_HOME/jvm/jvm
+
+RUN chown 1724:1724 $SAG_HOME/jvm/jvm
+
+COPY --chown=1724:1724 ./jvm/jvm/ $SAG_HOME/jvm/jvm/
+
+USER 1724
+
+RUN env
+RUN java -version

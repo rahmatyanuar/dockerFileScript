@@ -1,0 +1,54 @@
+FROM rhel9jvm:10122024
+
+LABEL MAINTAINER = "RAHMAT"
+ENV SAG_HOME /opt/softwareag
+ENV JAVA_HOME /opt/softwareag/jvm/jvm
+ENV JRE_HOME /opt/softwareag/jvm/jvm
+
+USER 0
+#Terracotta required hostname packages to identify the hostname
+RUN yum install hostname -y && yum clean all
+
+#RUN groupadd -g 1724 sagadmin; useradd -u 1724 -m -g 1724 -d ${SAG_HOME} sagadmin
+USER 1724
+# /data/diskstore will persist have persistent data  (FRS persistence for example); better not be on container filesystem !
+ENV DISKSTORE_DIRECTORY "$SAG_HOME/data"
+VOLUME $DISKSTORE_DIRECTORY
+
+# /data/backup/ will receive backup data; it must go to a highly trustable volume mount !
+ENV BACKUP_DIRECTORY "$SAG_HOME/bkp"
+VOLUME $BACKUP_DIRECTORY
+
+# optional, path to tc-config.xml file to overwrite default
+ENV CONFIG_FILE "$SAG_HOME/config/tc-config.xml"
+
+# Optional, path to the license.key file to ovewrite default, if bundled
+ENV LICENSE_FILE "$SAG_HOME/terracotta-license.key"
+
+# default values for offheap, that you can override when starting your container with docker run -e OFFHEAP_MAX_SIZE=512g for example
+ENV OFFHEAP_ENABLED "true"
+ENV OFFHEAP_MAX_SIZE "1g"
+
+# make the JVM aware of the container memory constraints, since JDK 8u131
+# see https://blog.csanchez.org/2017/05/31/running-a-jvm-in-a-container-without-getting-killed
+ENV JAVA_OPTS "-Dcom.tc.productkey.path=${LICENSE_FILE} -XX:+UnlockExperimentalVMOptions"
+
+# copy everything to make it a managed images
+#COPY --chown=1724:1724 ./jvm/jvm $JAVA_HOME
+#COPY ./common $SAG_HOME/common
+COPY --chown=1724:1724  ./Terracotta/server $SAG_HOME/server
+COPY --chown=1724:1724 ./Terracotta/entrypoint.sh $SAG_HOME/server/entrypoint.sh
+COPY --chown=1724:1724 ./Terracotta/data $SAG_HOME/data
+COPY --chown=1724:1724 ./Terracotta/terracotta-license.key $SAG_HOME/terracotta-license.key
+RUN chown -R  1724:1724 /opt/softwareag/data
+
+
+# Expose the default server port, the default replication port, and the default management port
+EXPOSE 9510 9520 9530
+
+#WORKDIR $SAG_HOME/server
+USER 1724
+# before starting the terracotta server, we update the tc-config.xml configuration file
+#ENTRYPOINT $SAG_HOME/server/entrypoint.sh
+
+ENTRYPOINT ["sh", "-c", "$SAG_HOME/server/bin/start-tc-server.sh"]

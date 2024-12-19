@@ -1,0 +1,15 @@
+<tc-config xmlns="http://www.terracotta.org/config">
+  <servers>
+    <!-- Terracotta server 0 -->
+    <server host="terracotta-0.terracotta-headless.default.svc.cluster.local" name="tc-server-0">
+      <data>/data</data>
+      <logs>/logs</logs>
+      <backup>/backup</backup>
+      <client-reconnect-window>120</client-reconnect-window>
+      <failover-priority>availability</failover-priority>
+    </server>
+  <clients>
+    <logs>/client-logs</logs>
+  </clients>
+</tc-config>
+

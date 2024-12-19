@@ -1,0 +1,10 @@
+FROM januar90/wm:is1015
+
+LABEL MAINTAINER Rahmat
+ENV SAG_HOME /opt/softwareag
+ENV LANG C.utf8
+
+#RUN groupadd -g 1724 sagadmin; useradd -u 1724 -m -g 1724 -d $SAG_HOME sagadmin
+USER 1724
+
+COPY --chown=1724:1724 ./FinancePackages/ $SAG_HOME/IntegrationServer/packages/FinancePackages/
