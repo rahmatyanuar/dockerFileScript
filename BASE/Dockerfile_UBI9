@@ -16,7 +16,7 @@ RUN mkdir -p $SAG_HOME/jvm/jvm
 
 RUN chown 1724:1724 $SAG_HOME/jvm/jvm
 
-COPY --chown=1724:1724 ./jvm/jvm/ $SAG_HOME/jvm/jvm/
+COPY --chown=1724:1724 $SAG_HOME/jvm/jvm/ $SAG_HOME/jvm/jvm/
 
 USER 1724
 
